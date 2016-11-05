@@ -15,7 +15,6 @@ namespace SimpleWebSocket {
         /// <typeparam name="Handler">處理容器型別，必須繼承自WebSocketHandler</typeparam>
         /// <param name="builder">擴充對象</param>
         /// <param name="options">WebSocket選項</param>
-        /// <returns></returns>
         public static IApplicationBuilder UseWebSockets<Handler>(this IApplicationBuilder builder, WebSocketOptions options = null) where Handler : WebSocketHandler, new() {
             if (options == null)
                 builder.UseWebSockets();

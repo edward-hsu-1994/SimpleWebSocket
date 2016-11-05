@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SimpleWebSocket {
     /// <summary>
-    /// 為<see cref="IApplicationBuilderExtension.UseWebSockets{Handler}(Microsoft.AspNet.Builder.IApplicationBuilder, Microsoft.AspNet.WebSockets.Server.WebSocketOptions)"/>方法所參考的處理類型
+    /// 為<see cref="WebSocketExtension.UseWebSockets{Handler}(Microsoft.AspNetCore.Builder.IApplicationBuilder, Microsoft.AspNetCore.Builder.WebSocketOptions)"/>方法所參考的處理類型
     /// </summary>
     public abstract class WebSocketHandler {
         /// <summary>
