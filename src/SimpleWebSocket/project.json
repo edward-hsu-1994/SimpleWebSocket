@@ -4,8 +4,10 @@
   "description": "",
   "authors": [ "PeiYao Xu" ],
   "copyright": "MIT",
-  "projectUrl": "https://github.com/XuPeiYao/SimpleWebSocket/",
-  "licenseUrl": "https://github.com/XuPeiYao/SimpleWebSocket/blob/master/license.txt",
+  "packOptions": {
+    "projectUrl": "https://github.com/XuPeiYao/SimpleWebSocket/",
+    "licenseUrl": "https://github.com/XuPeiYao/SimpleWebSocket/blob/master/license.txt"
+  },
   "scripts": {
     "postcompile": [
       "dotnet pack --no-build --configuration %compile:Configuration%"
