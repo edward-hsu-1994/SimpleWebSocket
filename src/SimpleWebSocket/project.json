@@ -4,7 +4,8 @@
   "description": "",
   "authors": [ "PeiYao Xu" ],
   "copyright": "MIT",
-  
+  "projectUrl": "https://github.com/XuPeiYao/SimpleWebSocket/",
+  "licenseUrl": "https://github.com/XuPeiYao/SimpleWebSocket/blob/master/license.txt",
   "dependencies": {
     "Microsoft.AspNetCore.WebSockets": "1.0.0-preview2-22624"
   },
