@@ -21,6 +21,7 @@ namespace SimpleWebSocket {
             else
                 builder.UseWebSockets(options);
 
+
             Handler handler = (Handler)Activator.CreateInstance(typeof(Handler));
 
             builder.Map(handler.RequestPath, WebSocketApi => {

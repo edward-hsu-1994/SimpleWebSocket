@@ -24,7 +24,14 @@ namespace SimpleWebSocket {
         /// <param name="socket">WebSocket物件</param>
         /// <param name="type">訊息類型</param>
         /// <param name="receiveMessage">接收到的訊息</param>
-        public delegate void WebsocketReceivedEvent(WebSocket socket, WebSocketMessageType type, byte[] receiveMessage);
+        public delegate void WebSocketReceivedEvent(WebSocket socket, WebSocketMessageType type, byte[] receiveMessage);
+
+        /// <summary>
+        /// WebSocket服務發生例外
+        /// </summary>
+        /// <param name="socket">WebSocket物件</param>
+        /// <param name="exception">例外</param>
+        public delegate void WebSocketException(WebSocket socket, Exception exception);
 
         /// <summary>
         /// WebSocket正在接收訊息事件
@@ -76,8 +83,11 @@ namespace SimpleWebSocket {
             if (AcceptConditions(context)) {
                 //通知允許連線
                 OnAcceptConnected?.Invoke(context);
+
+                var socket = await context.WebSockets.AcceptWebSocketAsync();
+
                 //轉發監聽
-                Listen(context, await context.WebSockets.AcceptWebSocketAsync(this.SubProtocol));
+                await Listen(context, socket);
             } else {
                 //通知拒絕連線
                 OnDenyConnected?.Invoke(context);
@@ -104,7 +114,12 @@ namespace SimpleWebSocket {
         /// <summary>
         /// 當WebSocket接收到訊息
         /// </summary>
-        protected event WebsocketReceivedEvent OnReceived;
+        protected event WebSocketReceivedEvent OnReceived;
+
+        /// <summary>
+        /// 當WebSocket服務發生例外
+        /// </summary>
+        protected event WebSocketException OnException;
 
         /// <summary>
         /// 當WebSocket正在接收訊息
@@ -126,42 +141,47 @@ namespace SimpleWebSocket {
         /// </summary>
         /// <param name="context">Http通訊內容</param>
         /// <param name="socket">WebSocket物件</param>
-        protected async void Listen(HttpContext context, WebSocket socket) {
+        protected async Task Listen(HttpContext context, WebSocket socket) {
             OnConnected?.Invoke(context, socket);
+            Exception exception = null;
 
-            while (true) {
-                bool ReceiveComplete = true;
-                WebSocketReceiveResult ReceiveResult;
-                List<byte> ReceiveData = new List<byte>();
+            //監聽迴圈
+            while (socket.State == WebSocketState.Open) {
+                List<byte> receiveData = new List<byte>();
+                WebSocketReceiveResult receiveResult = null;
 
-                //循環接收資料以防資料大於緩衝區大小時分段傳輸
+                //分段存取迴圈
                 do {
-                    //建立緩衝區
-                    byte[] Buffer = new byte[BufferSize];
+                    //緩衝區
+                    ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[BufferSize]);
 
-                    //接收資料
-                    ReceiveResult = await socket.ReceiveAsync(new ArraySegment<byte>(Buffer), CancellationToken.None);
+                    try {
+                        //接收資料
+                        receiveResult = await socket.ReceiveAsync(buffer, CancellationToken.None);
+                    } catch (Exception e) {
+                        exception = e;
+                        break;
+                    }
+                    byte[] rawData = buffer.Array.Take(receiveResult.Count).ToArray();
 
-                    //乾淨資料
-                    byte[] ClearData = new byte[ReceiveResult.Count];
+                    OnReceiving?.Invoke(
+                        socket,
+                        receiveResult.MessageType,
+                        rawData,
+                        receiveResult.EndOfMessage);
 
-                    //複製本次傳輸範圍資料
-                    Array.Copy(Buffer, ClearData, ReceiveResult.Count);
-                                        
-                    OnReceiving?.Invoke(socket, ReceiveResult.MessageType, ClearData, ReceiveResult.EndOfMessage);
+                    receiveData.AddRange(rawData);
+                } while (!receiveResult.EndOfMessage);
 
-                    //存入接收資料集合
-                    ReceiveData.AddRange(ClearData);
-
-                    //檢查是否接收完成
-                    ReceiveComplete = !ReceiveResult.EndOfMessage;
-                } while (ReceiveComplete);
+                OnReceived?.Invoke(socket, receiveResult.MessageType, receiveData.ToArray());
 
                 //檢查是否關閉連線，如關閉則跳脫循環監聽
-                if (ReceiveResult.CloseStatus.HasValue) break;
+                if (exception != null ||
+                    receiveResult.CloseStatus.HasValue ||
+                    socket.State != WebSocketState.Open) break;
+            }
 
-                OnReceived?.Invoke(socket, ReceiveResult.MessageType, ReceiveData.ToArray());
-            };
+            if (exception != null) OnException?.Invoke(socket, exception);
 
             OnDisconnected?.Invoke(context, socket);
         }

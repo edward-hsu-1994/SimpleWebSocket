@@ -14,7 +14,7 @@
     ]
   },
   "dependencies": {
-    "Microsoft.AspNetCore.WebSockets": "1.0.0-preview2-22624"
+    "Microsoft.AspNetCore.WebSockets.Server": "0.1.0"
   },
   "frameworks": {
     "netcoreapp1.0": {
