@@ -36,10 +36,13 @@ namespace SimpleWebSocket {
         public static async Task SendAsync(this WebSocket obj, byte[] buffer, WebSocketMessageType messageType, bool endOfMessage, int bufferSize, CancellationToken cancellationToken) {
             if (bufferSize < 1) throw new ArgumentOutOfRangeException(nameof(bufferSize), "緩衝區大小不該小於1");
             for (int i = 0; i < buffer.Length; i += bufferSize) {
-                ArraySegment<byte> segments = new ArraySegment<byte>(buffer, i, bufferSize);
+                //訊息結束檢查
+                bool end = false;
                 bool eof = i + bufferSize >= buffer.Length;
-                if (eof) eof = endOfMessage;
-                await obj.SendAsync(segments, messageType, eof, cancellationToken);
+                if (eof) end = endOfMessage;
+
+                ArraySegment<byte> segments = new ArraySegment<byte>(buffer, i, end ? buffer.Length - i : bufferSize);
+                await obj.SendAsync(segments, messageType, end, cancellationToken);
             }
         }
 
