@@ -84,7 +84,7 @@ namespace SimpleWebSocket {
                 //通知允許連線
                 OnAcceptConnected?.Invoke(context);
 
-                var socket = await context.WebSockets.AcceptWebSocketAsync();
+                var socket = await context.WebSockets.AcceptWebSocketAsync(SubProtocol);
 
                 //轉發監聽
                 await Listen(context, socket);
