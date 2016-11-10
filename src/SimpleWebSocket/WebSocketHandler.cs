@@ -97,9 +97,9 @@ namespace SimpleWebSocket {
         /// <summary>
         /// 允許WebSocket連線之條件
         /// </summary>
-        /// <param name="Context">Http通訊內容</param>
+        /// <param name="context">Http通訊內容</param>
         /// <returns>是否允許客戶端連線</returns>
-        protected abstract bool AcceptConditions(HttpContext Context);
+        protected abstract bool AcceptConditions(HttpContext context);
 
         /// <summary>
         /// 當WebSocket開啟連線時
