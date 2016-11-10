@@ -379,7 +379,7 @@ namespace SimpleWebSocket {
         /// <param name="bufferSize">緩衝區大小</param>
         /// <param name="millisecondsTimeout">逾時限制</param>
         /// <returns>接收到的Json</returns>
-        public static async Task<JToken> SendAndReceiveJsonAsync(this WebSocket obj, string data, Encoding encoding, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+        public static async Task<JToken> SendAndReceiveJsonAsync(this WebSocket obj, JToken data, Encoding encoding, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
             return await obj.SendAndReceiveJsonAsync(data, encoding, CancellationToken.None, bufferSize, millisecondsTimeout);
         }
 
@@ -391,7 +391,7 @@ namespace SimpleWebSocket {
         /// <param name="bufferSize">緩衝區大小</param>
         /// <param name="millisecondsTimeout">逾時限制</param>
         /// <returns>接收到的Json</returns>
-        public static async Task<JToken> SendAndReceiveJsonAsync(this WebSocket obj, string data, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+        public static async Task<JToken> SendAndReceiveJsonAsync(this WebSocket obj, JToken data, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
             return await obj.SendAndReceiveJsonAsync(data, Encoding.UTF8, bufferSize, millisecondsTimeout);
         }
         #endregion
