@@ -257,7 +257,7 @@ namespace SimpleWebSocket {
         /// <param name="bufferSize">緩衝區大小</param>
         /// <returns>接收到的位元組</returns>
         public static async Task<byte[]> SendAndReceiveAsync(this WebSocket obj, byte[] buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken, int bufferSize = 1024 * 4) {
-            await obj.SendAsync(buffer, messageType, endOfMessage, cancellationToken, buffer);
+            await obj.SendAsync(buffer, messageType, endOfMessage, cancellationToken, bufferSize);
             return await obj.ReceiveAsync(cancellationToken, bufferSize);
         }
 
