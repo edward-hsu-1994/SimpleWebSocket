@@ -22,9 +22,9 @@ namespace SimpleWebSocket {
         /// WebSocket接收訊息事件
         /// </summary>
         /// <param name="socket">WebSocket物件</param>
-        /// <param name="type">訊息類型</param>
+        /// <param name="messageType">訊息類型</param>
         /// <param name="receiveMessage">接收到的訊息</param>
-        public delegate void WebSocketReceivedEvent(WebSocket socket, WebSocketMessageType type, byte[] receiveMessage);
+        public delegate void WebSocketReceivedEvent(WebSocket socket, WebSocketMessageType messageType, byte[] receiveMessage);
 
         /// <summary>
         /// WebSocket服務發生例外
@@ -37,10 +37,10 @@ namespace SimpleWebSocket {
         /// WebSocket正在接收訊息事件
         /// </summary>
         /// <param name="socket">WebSocket物件</param>
-        /// <param name="type">訊息類型</param>
+        /// <param name="messageType">訊息類型</param>
         /// <param name="receiveMessage">接收到的訊息片段</param>
         /// <param name="endOfMessage">是否接收結束</param>
-        public delegate void WebsocketReceivingEvent(WebSocket socket, WebSocketMessageType type, byte[] receiveMessage, bool endOfMessage);
+        public delegate void WebsocketReceivingEvent(WebSocket socket, WebSocketMessageType messageType, byte[] receiveMessage, bool endOfMessage);
 
         /// <summary>
         /// 表示Request路徑
