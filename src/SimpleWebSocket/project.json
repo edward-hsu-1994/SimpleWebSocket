@@ -14,7 +14,8 @@
     ]
   },
   "dependencies": {
-    "Microsoft.AspNetCore.WebSockets.Server": "0.1.0"
+    "Microsoft.AspNetCore.WebSockets.Server": "0.1.0",
+    "Newtonsoft.Json": "9.0.1"
   },
   "frameworks": {
     "netcoreapp1.0": {
