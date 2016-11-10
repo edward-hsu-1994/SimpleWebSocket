@@ -165,5 +165,73 @@ namespace SimpleWebSocket {
             return encoding.GetString(await obj.ReceiveAsync(cancellationToken, bufferSize));
         }
         #endregion
+
+        #region SendAndWaitReceive
+        /// <summary>
+        /// 透過WebSocket以非同步的方式傳送資料並等候接收
+        /// </summary>
+        /// <param name="obj">擴充對象</param>
+        /// <param name="buffer">要透過連線傳送的緩衝區</param>
+        /// <param name="messageType">表示應用程式正在傳送二進位或文字訊息</param>
+        /// <param name="endOfMessage">指示「緩衝區」中的資料是否為訊息的最後一部分</param>
+        /// <param name="cancellationToken">散佈通知的語彙基元，該通知表示不應取消作業</param>
+        /// <param name="bufferSize">緩衝區大小</param>
+        /// <returns>接收到的位元組</returns>
+        public static async Task<byte[]> SendAndReceiveAsync(this WebSocket obj, byte[] buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken, int bufferSize = 1024 * 4) {
+            await obj.SendAsync(buffer, messageType, endOfMessage, cancellationToken, buffer);
+            return await obj.ReceiveAsync(cancellationToken, bufferSize);
+        }
+
+        /// <summary>
+        /// 透過WebSocket以非同步的方式傳送資料並等候接收
+        /// </summary>
+        /// <param name="obj">擴充對象</param>
+        /// <param name="buffer">要透過連線傳送的緩衝區</param>
+        /// <param name="messageType">表示應用程式正在傳送二進位或文字訊息</param>
+        /// <param name="endOfMessage">指示「緩衝區」中的資料是否為訊息的最後一部分</param>
+        /// <param name="bufferSize">緩衝區大小</param>
+        /// <returns>接收到的位元組</returns>
+        public static async Task SendAndReceiveAsync(this WebSocket obj, byte[] buffer, WebSocketMessageType messageType, bool endOfMessage, int bufferSize = 1024 * 4) {
+            await obj.SendAsync(buffer, messageType, endOfMessage, CancellationToken.None, bufferSize);
+        }
+
+        /// <summary>
+        /// 非同步送出文字並等候接收
+        /// </summary>
+        /// <param name="obj">擴充對象</param>
+        /// <param name="data">文字內容</param>
+        /// <param name="encoding">文字編碼，如為null則為預設(UTF8)</param>
+        /// <param name="cancellationToken">散佈通知的語彙基元，該通知表示不應取消作業</param>
+        /// <param name="bufferSize">緩衝區大小</param>
+        /// <returns>接收到的字串</returns>
+        public static async Task<string> SendAndReceiveTextAsync(this WebSocket obj, string data, Encoding encoding, CancellationToken cancellationToken, int bufferSize = 1024 * 4) {
+            await obj.SendAsync(encoding.GetBytes(data), WebSocketMessageType.Text, true, cancellationToken, bufferSize);
+            return await obj.ReceiveTextAsync(encoding, cancellationToken, bufferSize);
+        }
+
+        /// <summary>
+        /// 非同步送出文字
+        /// </summary>
+        /// <param name="obj">擴充對象</param>
+        /// <param name="data">文字內容</param>
+        /// <param name="encoding">文字編碼，如為null則為預設(UTF8)</param>
+        /// <param name="bufferSize">緩衝區大小</param>
+        /// <returns>接收到的字串</returns>
+        public static async Task<string> SendAndReceiveTextAsync(this WebSocket obj, string data, Encoding encoding, int bufferSize = 1024 * 4) {
+            await obj.SendTextAsync(data, encoding, bufferSize);
+            return await obj.ReceiveTextAsync(encoding, bufferSize);
+        }
+
+        /// <summary>
+        /// 非同步送出文字(UTF8)
+        /// </summary>
+        /// <param name="obj">擴充對象</param>
+        /// <param name="data">文字內容</param>
+        /// <param name="bufferSize">緩衝區大小</param>
+        public static async Task<string> SendAndReceiveTextAsync(this WebSocket obj, string data, int bufferSize = 1024 * 4) {
+            await obj.SendTextAsync(data, bufferSize);
+            return await obj.ReceiveTextAsync(bufferSize);
+        }
+        #endregion
     }
 }
