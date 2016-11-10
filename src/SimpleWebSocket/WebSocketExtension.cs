@@ -121,7 +121,7 @@ namespace SimpleWebSocket {
         /// <param name="data">Json內容</param>
         /// <param name="bufferSize">緩衝區大小</param>
         /// <param name="millisecondsTimeout">逾時限制</param>
-        public static async Task SendJsonAsync(this WebSocket obj, string data, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+        public static async Task SendJsonAsync(this WebSocket obj, JToken data, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
             await obj.SendTextAsync(data.ToString(), bufferSize, millisecondsTimeout);
         }
         #endregion
@@ -279,10 +279,16 @@ namespace SimpleWebSocket {
         /// <param name="endOfMessage">指示「緩衝區」中的資料是否為訊息的最後一部分</param>
         /// <param name="cancellationToken">散佈通知的語彙基元，該通知表示不應取消作業</param>
         /// <param name="bufferSize">緩衝區大小</param>
+        /// <param name="millisecondsTimeout">逾時限制</param>
         /// <returns>接收到的位元組</returns>
-        public static async Task<byte[]> SendAndReceiveAsync(this WebSocket obj, byte[] buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken, int bufferSize = 1024 * 4) {
-            await obj.SendAsync(buffer, messageType, endOfMessage, cancellationToken, bufferSize);
-            return await obj.ReceiveAsync(cancellationToken, bufferSize);
+        public static async Task<byte[]> SendAndReceiveAsync(this WebSocket obj, byte[] buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+            byte[] result = null;
+            var notTimeout = await TaskFactory.LimitedTask(async () => {
+                await obj.SendAsync(buffer, messageType, endOfMessage, cancellationToken, bufferSize);
+                result = await obj.ReceiveAsync(cancellationToken, bufferSize);
+            }, millisecondsTimeout);
+            if (!notTimeout) throw new TimeoutException();
+            return result;
         }
 
         /// <summary>
@@ -293,9 +299,10 @@ namespace SimpleWebSocket {
         /// <param name="messageType">表示應用程式正在傳送二進位或文字訊息</param>
         /// <param name="endOfMessage">指示「緩衝區」中的資料是否為訊息的最後一部分</param>
         /// <param name="bufferSize">緩衝區大小</param>
+        /// <param name="millisecondsTimeout">逾時限制</param>
         /// <returns>接收到的位元組</returns>
-        public static async Task SendAndReceiveAsync(this WebSocket obj, byte[] buffer, WebSocketMessageType messageType, bool endOfMessage, int bufferSize = 1024 * 4) {
-            await obj.SendAsync(buffer, messageType, endOfMessage, CancellationToken.None, bufferSize);
+        public static async Task<byte[]> SendAndReceiveAsync(this WebSocket obj, byte[] buffer, WebSocketMessageType messageType, bool endOfMessage, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+            return await obj.SendAndReceiveAsync(buffer, messageType, endOfMessage, CancellationToken.None, bufferSize, millisecondsTimeout);
         }
 
         /// <summary>
@@ -306,10 +313,16 @@ namespace SimpleWebSocket {
         /// <param name="encoding">文字編碼</param>
         /// <param name="cancellationToken">散佈通知的語彙基元，該通知表示不應取消作業</param>
         /// <param name="bufferSize">緩衝區大小</param>
+        /// <param name="millisecondsTimeout">逾時限制</param>
         /// <returns>接收到的字串</returns>
-        public static async Task<string> SendAndReceiveTextAsync(this WebSocket obj, string data, Encoding encoding, CancellationToken cancellationToken, int bufferSize = 1024 * 4) {
-            await obj.SendAsync(encoding.GetBytes(data), WebSocketMessageType.Text, true, cancellationToken, bufferSize);
-            return await obj.ReceiveTextAsync(encoding, cancellationToken, bufferSize);
+        public static async Task<string> SendAndReceiveTextAsync(this WebSocket obj, string data, Encoding encoding, CancellationToken cancellationToken, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+            string result = null;
+            var notTimeout = await TaskFactory.LimitedTask(async () => {
+                await obj.SendTextAsync(data, encoding, cancellationToken, bufferSize);
+                result = await obj.ReceiveTextAsync(cancellationToken, bufferSize);
+            }, millisecondsTimeout);
+            if (!notTimeout) throw new TimeoutException();
+            return result;
         }
 
         /// <summary>
@@ -319,9 +332,10 @@ namespace SimpleWebSocket {
         /// <param name="data">文字內容</param>
         /// <param name="encoding">文字編碼</param>
         /// <param name="bufferSize">緩衝區大小</param>
+        /// <param name="millisecondsTimeout">逾時限制</param>
         /// <returns>接收到的字串</returns>
-        public static async Task<string> SendAndReceiveTextAsync(this WebSocket obj, string data, Encoding encoding, int bufferSize = 1024 * 4) {
-            return await obj.SendAndReceiveTextAsync(data, encoding, CancellationToken.None, bufferSize);
+        public static async Task<string> SendAndReceiveTextAsync(this WebSocket obj, string data, Encoding encoding, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+            return await obj.SendAndReceiveTextAsync(data, encoding, CancellationToken.None, bufferSize, millisecondsTimeout);
         }
 
         /// <summary>
@@ -330,10 +344,12 @@ namespace SimpleWebSocket {
         /// <param name="obj">擴充對象</param>
         /// <param name="data">文字內容</param>
         /// <param name="bufferSize">緩衝區大小</param>
-        public static async Task<string> SendAndReceiveTextAsync(this WebSocket obj, string data, int bufferSize = 1024 * 4) {
-            return await obj.SendAndReceiveTextAsync(data, Encoding.UTF8, bufferSize);
+        /// <param name="millisecondsTimeout">逾時限制</param>
+        /// <returns>接收到的字串</returns>
+        public static async Task<string> SendAndReceiveTextAsync(this WebSocket obj, string data, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+            return await obj.SendAndReceiveTextAsync(data, Encoding.UTF8, bufferSize, millisecondsTimeout);
         }
-        
+
         /// <summary>
         /// 非同步送出Json並等候接收
         /// </summary>
@@ -342,10 +358,16 @@ namespace SimpleWebSocket {
         /// <param name="encoding">文字編碼</param>
         /// <param name="cancellationToken">散佈通知的語彙基元，該通知表示不應取消作業</param>
         /// <param name="bufferSize">緩衝區大小</param>
+        /// <param name="millisecondsTimeout">逾時限制</param>
         /// <returns>接收到的Json</returns>
-        public static async Task<JToken> SendAndReceiveJsonAsync(this WebSocket obj, string data, Encoding encoding, CancellationToken cancellationToken, int bufferSize = 1024 * 4) {
-            await obj.SendJsonAsync(data, encoding, cancellationToken, bufferSize);
-            return await obj.ReceiveJsonAsync(encoding, cancellationToken, bufferSize);
+        public static async Task<JToken> SendAndReceiveJsonAsync(this WebSocket obj, JToken data, Encoding encoding, CancellationToken cancellationToken, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+            JToken result = null;
+            var notTimeout = await TaskFactory.LimitedTask(async () => {
+                await obj.SendJsonAsync(data, encoding, cancellationToken, bufferSize);
+                result = await obj.ReceiveJsonAsync(cancellationToken, bufferSize);
+            }, millisecondsTimeout);
+            if (!notTimeout) throw new TimeoutException();
+            return result;
         }
 
         /// <summary>
@@ -355,9 +377,10 @@ namespace SimpleWebSocket {
         /// <param name="data">文字內容</param>
         /// <param name="encoding">文字編碼(</param>
         /// <param name="bufferSize">緩衝區大小</param>
+        /// <param name="millisecondsTimeout">逾時限制</param>
         /// <returns>接收到的Json</returns>
-        public static async Task<JToken> SendAndReceiveJsonAsync(this WebSocket obj, string data, Encoding encoding, int bufferSize = 1024 * 4) {
-            return await obj.SendAndReceiveJsonAsync(data, encoding, CancellationToken.None, bufferSize);
+        public static async Task<JToken> SendAndReceiveJsonAsync(this WebSocket obj, string data, Encoding encoding, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+            return await obj.SendAndReceiveJsonAsync(data, encoding, CancellationToken.None, bufferSize, millisecondsTimeout);
         }
 
         /// <summary>
@@ -366,9 +389,10 @@ namespace SimpleWebSocket {
         /// <param name="obj">擴充對象</param>
         /// <param name="data">文字內容</param>
         /// <param name="bufferSize">緩衝區大小</param>
+        /// <param name="millisecondsTimeout">逾時限制</param>
         /// <returns>接收到的Json</returns>
-        public static async Task<JToken> SendAndReceiveJsonAsync(this WebSocket obj, string data, int bufferSize = 1024 * 4) {
-            return await obj.SendAndReceiveJsonAsync(data, Encoding.UTF8, bufferSize);
+        public static async Task<JToken> SendAndReceiveJsonAsync(this WebSocket obj, string data, int bufferSize = 1024 * 4, int millisecondsTimeout = -1) {
+            return await obj.SendAndReceiveJsonAsync(data, Encoding.UTF8, bufferSize, millisecondsTimeout);
         }
         #endregion
     }
